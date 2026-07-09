@@ -1,0 +1,117 @@
+@import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css";
+@import "tailwindcss";
+
+@keyframes blink-scale-color {
+  0%, 100% {
+    transform: scale(1);
+    background-color: rgb(220, 38, 38);
+  }
+  50% {
+    transform: scale(1.1);
+    background-color: rgb(251, 191, 36);
+  }
+}
+
+@keyframes blink-text-color {
+  0%, 100% {
+    color: rgb(255, 255, 255);
+  }
+  33% {
+    color: rgb(251, 191, 36);
+  }
+  66% {
+    color: rgb(220, 38, 38);
+  }
+}
+
+.animate-blink-text {
+  animation: blink-text-color 0.6s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-blink-badge {
+  animation: blink-scale-color 1s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-blink-badge::before,
+.animate-blink-badge::after {
+  animation: blink-scale-color 1s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { color: rgb(255, 255, 255); }
+  33% { color: rgb(251, 191, 36); }
+  66% { color: rgb(220, 38, 38); }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 0.5s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(15deg); }
+  20% { transform: rotate(-15deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(5deg); }
+  60% { transform: rotate(-5deg); }
+  70% { transform: rotate(0deg); }
+}
+
+body {
+  background-image: radial-gradient(rgb(17, 24, 39), rgb(31, 41, 55));
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility clip-diagonal {
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+
+@utility clip-button {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+
+
