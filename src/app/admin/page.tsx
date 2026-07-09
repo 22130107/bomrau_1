@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { AdminContent, AdminProduct, AdminAccount, AdminCategory, AdminNotification } from "@/components/AdminContent";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { AdminContent, AdminProduct } from "@/components/AdminContent";
+import { getSession } from "@/lib/session";
 import pool from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 
@@ -11,6 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
+  const session = await getSession();
+  if (!session || session.role !== "admin") redirect("/login");
   // 1. Fetch Products
   const [productRows] = await pool.query<RowDataPacket[]>(`
     SELECT p.id, p.category_id, p.extra_categories, p.title, p.image_url, 
@@ -55,7 +60,6 @@ export default async function AdminPage() {
     discount_percent: Number(row.discount_percent) || 0,
     fake_sold_count: Number(row.fake_sold_count) || 0,
     fake_remaining_count: Number(row.fake_remaining_count) || 0,
-    category_name: row.category_name || "N/A",
     status: row.status as "available" | "hidden",
     is_pinned: Boolean(row.is_pinned),
     pet_tim: row.pet_tim || "",
@@ -64,77 +68,15 @@ export default async function AdminPage() {
     extra_info: row.extra_info || ""
   }));
 
-  // Fetch Accounts
-  const [accountRows] = await pool.query<RowDataPacket[]>(`
-    SELECT a.id, a.product_id, a.distributor_id, a.login_username, a.login_password, 
-           a.cost_price, a.status, a.note,
-           p.title as product_title, d.name as distributor_name
-    FROM accounts a
-    LEFT JOIN products p ON a.product_id = p.id
-    LEFT JOIN distributors d ON a.distributor_id = d.id
-    ORDER BY a.id DESC
-  `);
-
-  const initialAccounts: AdminAccount[] = accountRows.map(row => ({
-    id: row.id,
-    product_id: row.product_id,
-    distributor_id: row.distributor_id || null,
-    login_username: row.login_username,
-    login_password: row.login_password,
-    cost_price: Number(row.cost_price) || 0,
-    status: row.status as "available" | "sold" | "hidden",
-    note: row.note || "",
-    product_title: row.product_title || "N/A",
-    distributor_name: row.distributor_name || "N/A",
-  }));
-
-  // 2. Fetch Categories
-  const [categoryRows] = await pool.query<RowDataPacket[]>(`
-    SELECT c.id, c.name, c.slug, c.description, c.image_url, c.sort_order,
-           c.fake_remaining_count as productCount,
-           c.fake_sold_count as soldCount,
-           c.is_active
-    FROM categories c
-    ORDER BY c.sort_order
-  `);
-
-  const initialCategories: AdminCategory[] = categoryRows.map(row => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    description: row.description || "",
-    image_url: row.image_url || "",
-    sort_order: Number(row.sort_order) || 0,
-    productCount: Number(row.productCount) || 0,
-    soldCount: Number(row.soldCount) || 0,
-    is_active: Boolean(row.is_active),
-  }));
-
-  // 3. Fetch Notifications
-  const [notificationRows] = await pool.query<RowDataPacket[]>(`
-    SELECT id, title, content, image_url, is_pinned, is_active, created_at
-    FROM notifications
-    ORDER BY id DESC
-  `);
-
-  const initialNotifications: AdminNotification[] = notificationRows.map(row => ({
-    id: row.id,
-    title: row.title,
-    content: row.content,
-    image_url: row.image_url || "",
-    is_pinned: Boolean(row.is_pinned),
-    is_active: Boolean(row.is_active),
-    date: new Date(row.created_at).toLocaleDateString("vi-VN"),
-  }));
-
   return (
     <div className="min-h-screen flex flex-col">
+      <header className="flex items-center justify-end gap-4 px-4 py-3 border-b border-[rgb(75,85,99)]">
+        <span className="text-[13px] text-[rgba(238,238,238,0.5)]">Xin chào, {session.username}</span>
+        <Link href="/api/auth/logout" className="text-[13px] text-[rgb(220,38,38)] hover:text-[rgb(248,113,113)] transition-colors">Đăng xuất</Link>
+      </header>
       <main className="flex-1 py-6 md:py-10 px-4">
         <AdminContent 
           initialProducts={initialProducts}
-          initialAccounts={initialAccounts}
-          initialCategories={initialCategories}
-          initialNotifications={initialNotifications}
         />
       </main>
     </div>

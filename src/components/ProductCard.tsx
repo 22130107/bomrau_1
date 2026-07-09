@@ -9,12 +9,10 @@ interface ProductCardProps {
   price: number;
   originalPrice: number;
   discount: number;
-  sold?: number;
-  remaining?: number;
   href: string;
 }
 
-export function ProductCard({ id, name, image, price, originalPrice, discount, sold, remaining, href }: ProductCardProps) {
+export function ProductCard({ id, name, image, price, originalPrice, discount, href }: ProductCardProps) {
   const formatPrice = (p: number) => p.toLocaleString("vi-VN") + " ₫";
 
   return (
@@ -37,17 +35,6 @@ export function ProductCard({ id, name, image, price, originalPrice, discount, s
                 {formatPrice(originalPrice)}
               </span>
             </div>
-            {sold !== undefined && sold > 0 ? (
-              <p className="text-center text-[10px] md:text-[14px] mt-1 leading-tight">
-                Đã bán <span className="font-bold text-[16px] md:text-[26px] animate-blink-text font-[family-name:var(--font-nunito)]">{sold}</span> acc
-                {remaining !== undefined && remaining > 0 && (
-                  <>
-                    <span className="mx-0.5 md:mx-1">|</span>
-                    Còn <span className="font-bold text-[16px] md:text-[26px] animate-blink-text font-[family-name:var(--font-nunito)]">{remaining}</span> acc
-                  </>
-                )}
-              </p>
-            ) : null}
           </div>
           <Link href={href} className="items-center flex font-bold justify-center mx-auto mt-auto max-w-full w-full md:w-[200px] h-8 md:h-10 bg-[rgb(202,138,4)] hover:bg-[rgb(251,191,36)] rounded-lg md:rounded-none md:clip-button text-[12px] md:text-[18px] transition-colors text-black">
             XEM CHI TIẾT

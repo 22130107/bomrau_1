@@ -5,7 +5,6 @@ import { CldImage, cloudinaryUrl } from "@/lib/cloudinary-url";
 
 interface ProductDetailProps {
   productId: number;
-  currentUser: { id: number; username: string; balance: number } | null;
   name: string;
   image: string;
   images?: string[];
@@ -21,7 +20,6 @@ interface ProductDetailProps {
 
 export function ProductDetail({
   productId,
-  currentUser,
   name,
   image,
   images,

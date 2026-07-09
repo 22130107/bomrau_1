@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NewsSection } from "@/components/NewsSection";
-import { CategorySection } from "@/components/CategorySection";
+import { HomeContent } from "@/components/HomeContent";
 
 import pool from "@/lib/db";
 import { RowDataPacket } from "mysql2";
@@ -22,6 +22,23 @@ export default async function HomePage() {
     title: row.title,
     content: row.content,
     image: row.image_url || "",
+  }));
+
+  const [products] = await pool.query<RowDataPacket[]>(`
+    SELECT p.id, p.title as name, p.image_url, p.original_price as originalPrice,
+           p.price, p.discount_percent as discount
+    FROM products p
+    WHERE p.status = 'available'
+    ORDER BY p.is_pinned DESC, p.price ASC
+  `);
+
+  const initialProducts = products.map(p => ({
+    id: p.id as number,
+    name: p.name as string,
+    image_url: (p.image_url || "") as string,
+    price: Number(p.price),
+    originalPrice: Number(p.originalPrice),
+    discount: Number(p.discount),
   }));
 
   const jsonLd = {
@@ -52,7 +69,7 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main>
         <NewsSection notifications={initialNotifications} />
-        <CategorySection />
+        <HomeContent initialProducts={initialProducts} />
       </main>
     </div>
   );

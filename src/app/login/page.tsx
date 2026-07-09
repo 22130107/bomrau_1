@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { LoginForm } from "@/components/LoginForm";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
+import { AdminLoginForm } from "@/components/AdminLoginForm";
 
 export const metadata: Metadata = {
-  title: "Đăng Nhập - Shop TFT",
-  description: "Đăng nhập hoặc đăng ký tài khoản Shop TFT để mua nick game TFT.",
+  title: "Đăng nhập Admin - Shop TFT",
+  robots: "noindex, nofollow",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await getSession();
+  if (session?.role === "admin") redirect("/admin");
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 flex items-center justify-center py-10 px-4">
-        <LoginForm />
-      </main>
-    </div>
+    <main className="flex items-center justify-center min-h-screen px-4">
+      <AdminLoginForm />
+    </main>
   );
 }
