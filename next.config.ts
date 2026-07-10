@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const allowedOrigins = ["bomrautft.com", "hungnho.com"];
+const allowedOrigins = ["bomrautft.com", "hungnho.com", "shoptft.click"];
 if (process.env.ALLOWED_ORIGINS) {
   const envOrigins = process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim()).filter(Boolean);
   allowedOrigins.push(...envOrigins);
