@@ -24,7 +24,7 @@ async function uploadToLocal(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
+  const res = await fetch("/api/upload", { method: "POST", body: formData, credentials: "include" });
   const data = await res.json();
   if (!res.ok || data.error) {
     throw new Error(data.error || "Upload thất bại");
