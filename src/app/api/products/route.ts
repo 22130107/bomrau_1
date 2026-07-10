@@ -1,33 +1,7 @@
-"use server";
-
+import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { RowDataPacket } from "mysql2";
-import { setProductImages } from "./product-images";
-
-export interface ProductFormData {
-  category_id: number;
-  extra_categories: number[];
-  title: string;
-  image_url: string;
-  images: string[];
-  price: number;
-  original_price: number;
-  discount_percent: number;
-  fake_sold_count: number;
-  fake_remaining_count: number;
-  status: "available" | "hidden";
-  is_pinned: boolean;
-  pet_tim?: string;
-  san_tim?: string;
-  chuong?: string;
-  extra_info?: string;
-  account_username?: string;
-  account_password?: string;
-  account_cost_price?: number;
-  account_note?: string;
-}
 
 function autoExtraCategories(price: number, manual: number[] = []): number[] {
   const auto = price > 2999000 ? 1 : 2;
@@ -36,13 +10,40 @@ function autoExtraCategories(price: number, manual: number[] = []): number[] {
   return Array.from(set);
 }
 
-export async function createProductAction(data: ProductFormData) {
+async function setProductImages(productId: number, imageUrls: string[]) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query("DELETE FROM product_images WHERE product_id = ?", [productId]);
+    for (let i = 0; i < imageUrls.length; i++) {
+      if (imageUrls[i]) {
+        await conn.query(
+          "INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)",
+          [productId, imageUrls[i], i]
+        );
+      }
+    }
+    await conn.query(
+      "UPDATE products SET image_url = ? WHERE id = ?",
+      [imageUrls[0] || "", productId]
+    );
+    await conn.commit();
+  } catch (error: any) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
+export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "admin") return { error: "Unauthorized" };
+    if (!session || session.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const data = await req.json();
     if (!data.title || data.price == null) {
-      return { error: "Vui lòng nhập đủ các trường bắt buộc" };
+      return NextResponse.json({ error: "Vui lòng nhập đủ các trường bắt buộc" }, { status: 400 });
     }
 
     const fakeSold = data.fake_sold_count || 0;
@@ -63,14 +64,12 @@ export async function createProductAction(data: ProductFormData) {
 
     const productId = (result as any).insertId;
 
-    // Lưu nhiều ảnh
     if (data.images && data.images.length > 0) {
       await setProductImages(productId, data.images);
     } else if (data.image_url) {
       await setProductImages(productId, [data.image_url]);
     }
 
-    // Nếu có nhập tài khoản thì tạo luôn 1 account cho sản phẩm vừa tạo
     if (data.account_username && data.account_password) {
       await pool.query(
         `INSERT INTO accounts (product_id, distributor_id, login_username, login_password, cost_price, status, note)
@@ -84,23 +83,24 @@ export async function createProductAction(data: ProductFormData) {
 
     revalidatePath("/admin");
     revalidatePath("/");
-    return { success: true };
+    return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Create product error:", error);
-    return { error: "Lỗi hệ thống: " + (error.message || "Unknown error") };
+    return NextResponse.json({ error: "Lỗi hệ thống: " + (error.message || "Unknown error") }, { status: 500 });
   }
 }
 
-export async function updateProductAction(id: number, data: ProductFormData) {
+export async function PUT(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "admin") return { error: "Unauthorized" };
+    if (!session || session.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    if (!data.title || data.price == null) {
-      return { error: "Vui lòng nhập đủ các trường bắt buộc" };
+    const data = await req.json();
+    if (!data.id || !data.title || data.price == null) {
+      return NextResponse.json({ error: "Thiếu dữ liệu" }, { status: 400 });
     }
 
     const catId = data.category_id || 1;
+    const id = data.id;
 
     await pool.query(
       `UPDATE products SET 
@@ -121,63 +121,28 @@ export async function updateProductAction(id: number, data: ProductFormData) {
 
     revalidatePath("/admin");
     revalidatePath("/");
-    return { success: true };
+    return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Update product error:", error);
-    return { error: "Lỗi hệ thống: " + (error.message || "Unknown error") };
+    return NextResponse.json({ error: "Lỗi hệ thống: " + (error.message || "Unknown error") }, { status: 500 });
   }
 }
 
-export async function togglePinProductAction(id: number) {
+export async function DELETE(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "admin") return { error: "Unauthorized" };
+    if (!session || session.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    await pool.query(
-      "UPDATE products SET is_pinned = NOT is_pinned WHERE id = ?",
-      [id]
-    );
-
-    revalidatePath("/admin");
-    revalidatePath("/");
-    return { success: true };
-  } catch (error: any) {
-    console.error("Toggle pin product error:", error);
-    return { error: "Lỗi hệ thống" };
-  }
-}
-
-export async function deleteProductAction(id: number) {
-  try {
-    const session = await getSession();
-    if (!session || session.role !== "admin") return { error: "Unauthorized" };
-
-    await pool.query("DELETE FROM products WHERE id = ?", [id]);
-
-    revalidatePath("/admin");
-    revalidatePath("/");
-    return { success: true };
-  } catch (error: any) {
-    console.error("Delete product error:", error);
-    return { error: "Lỗi hệ thống" };
-  }
-}
-
-export async function deleteMultipleProductsAction(ids: number[]) {
-  try {
-    const session = await getSession();
-    if (!session || session.role !== "admin") return { error: "Unauthorized" };
-
-    if (ids.length === 0) return { error: "Chưa chọn sản phẩm nào" };
+    const data = await req.json();
+    const ids = data.ids;
+    if (!ids || ids.length === 0) return NextResponse.json({ error: "Chưa chọn sản phẩm" }, { status: 400 });
 
     const placeholders = ids.map(() => "?").join(",");
     await pool.query(`DELETE FROM products WHERE id IN (${placeholders})`, ids);
 
     revalidatePath("/admin");
     revalidatePath("/");
-    return { success: true };
+    return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Delete multiple products error:", error);
-    return { error: "Lỗi hệ thống" };
+    return NextResponse.json({ error: "Lỗi hệ thống: " + (error.message || "Unknown error") }, { status: 500 });
   }
 }

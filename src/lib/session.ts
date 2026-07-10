@@ -13,14 +13,14 @@ export interface SessionPayload {
 const secretKey = process.env.SESSION_SECRET || "fallback-secret-key-change-me";
 const encodedKey = new TextEncoder().encode(secretKey);
 
-// Session duration: 10 minutes
-const SESSION_DURATION_MS = 10 * 60 * 1000;
+// Session duration: 7 days
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function encrypt(payload: SessionPayload) {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("10m")
+    .setExpirationTime("7d")
     .sign(encodedKey);
 }
 

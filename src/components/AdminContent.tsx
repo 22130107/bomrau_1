@@ -1,24 +1,81 @@
 "use client";
 
 import React, { useState, useRef, useTransition, useEffect } from "react";
-import {
-  createProductAction,
-  updateProductAction,
-  deleteProductAction,
-  deleteMultipleProductsAction,
-  togglePinProductAction,
-  ProductFormData,
-} from "@/app/actions/product";
-
-
 import { AutocompleteField } from "@/components/AutocompleteField";
-import {
-  getAllProductOptions,
-  createProductOption,
-  updateProductOption,
-  deleteProductOption,
-  ProductOptionFull,
-} from "@/app/actions/product-options";
+export interface ProductFormData {
+  category_id: number;
+  extra_categories: number[];
+  title: string;
+  image_url: string;
+  images: string[];
+  price: number;
+  original_price: number;
+  discount_percent: number;
+  fake_sold_count: number;
+  fake_remaining_count: number;
+  status: "available" | "hidden";
+  is_pinned: boolean;
+  pet_tim?: string;
+  san_tim?: string;
+  chuong?: string;
+  extra_info?: string;
+  account_username?: string;
+  account_password?: string;
+  account_cost_price?: number;
+  account_note?: string;
+}
+
+export interface ProductOptionFull {
+  id: number;
+  name: string;
+  type: string;
+  sort_order: number;
+}
+
+async function createProductAction(data: ProductFormData) {
+  const res = await fetch("/api/products", { method: "POST", body: JSON.stringify(data) });
+  return res.json();
+}
+
+async function updateProductAction(id: number, data: ProductFormData) {
+  const res = await fetch("/api/products", { method: "PUT", body: JSON.stringify({ ...data, id }) });
+  return res.json();
+}
+
+async function deleteProductAction(id: number) {
+  const res = await fetch("/api/products", { method: "DELETE", body: JSON.stringify({ ids: [id] }) });
+  return res.json();
+}
+
+async function deleteMultipleProductsAction(ids: number[]) {
+  const res = await fetch("/api/products", { method: "DELETE", body: JSON.stringify({ ids }) });
+  return res.json();
+}
+
+async function togglePinProductAction(id: number) {
+  const res = await fetch("/api/products/pin", { method: "POST", body: JSON.stringify({ id }) });
+  return res.json();
+}
+
+async function getAllProductOptions(): Promise<ProductOptionFull[]> {
+  const res = await fetch("/api/options");
+  return res.json();
+}
+
+async function createProductOption(type: string, name: string) {
+  const res = await fetch("/api/options", { method: "POST", body: JSON.stringify({ type, name }) });
+  return res.json();
+}
+
+async function updateProductOption(id: number, name: string) {
+  const res = await fetch("/api/options", { method: "PUT", body: JSON.stringify({ id, name }) });
+  return res.json();
+}
+
+async function deleteProductOption(id: number) {
+  const res = await fetch("/api/options", { method: "DELETE", body: JSON.stringify({ id }) });
+  return res.json();
+}
 
 async function uploadToLocal(file: File): Promise<string> {
   const formData = new FormData();

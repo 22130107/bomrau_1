@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { searchProductOptions, ProductOption } from "@/app/actions/product-options";
+export interface ProductOption {
+  id: number;
+  name: string;
+}
 
 interface AutocompleteFieldProps {
   label: string;
@@ -74,9 +77,16 @@ export function AutocompleteField({ label, value, onChange, placeholder, optionT
 
     timerRef.current = setTimeout(async () => {
       setLoading(true);
-      const data = await searchProductOptions(optionType, text);
-      setSuggestions(data);
-      setIsOpen(data.length > 0);
+      try {
+        const res = await fetch(`/api/options?type=${optionType}&q=${encodeURIComponent(text)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data);
+          setIsOpen(data.length > 0);
+        }
+      } catch (err) {
+        setSuggestions([]);
+      }
       setLoading(false);
     }, 300);
   };
