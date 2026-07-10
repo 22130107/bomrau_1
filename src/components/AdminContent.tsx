@@ -33,47 +33,47 @@ export interface ProductOptionFull {
 }
 
 async function createProductAction(data: ProductFormData) {
-  const res = await fetch("/api/products", { method: "POST", body: JSON.stringify(data) });
+  const res = await fetch("/api/products", { method: "POST", body: JSON.stringify(data), credentials: "include" });
   return res.json();
 }
 
 async function updateProductAction(id: number, data: ProductFormData) {
-  const res = await fetch("/api/products", { method: "PUT", body: JSON.stringify({ ...data, id }) });
+  const res = await fetch("/api/products", { method: "PUT", body: JSON.stringify({ ...data, id }), credentials: "include" });
   return res.json();
 }
 
 async function deleteProductAction(id: number) {
-  const res = await fetch("/api/products", { method: "DELETE", body: JSON.stringify({ ids: [id] }) });
+  const res = await fetch("/api/products", { method: "DELETE", body: JSON.stringify({ ids: [id] }), credentials: "include" });
   return res.json();
 }
 
 async function deleteMultipleProductsAction(ids: number[]) {
-  const res = await fetch("/api/products", { method: "DELETE", body: JSON.stringify({ ids }) });
+  const res = await fetch("/api/products", { method: "DELETE", body: JSON.stringify({ ids }), credentials: "include" });
   return res.json();
 }
 
 async function togglePinProductAction(id: number) {
-  const res = await fetch("/api/products/pin", { method: "POST", body: JSON.stringify({ id }) });
+  const res = await fetch("/api/products/pin", { method: "POST", body: JSON.stringify({ id }), credentials: "include" });
   return res.json();
 }
 
 async function getAllProductOptions(): Promise<ProductOptionFull[]> {
-  const res = await fetch("/api/options");
+  const res = await fetch("/api/options", { credentials: "include" });
   return res.json();
 }
 
 async function createProductOption(type: string, name: string) {
-  const res = await fetch("/api/options", { method: "POST", body: JSON.stringify({ type, name }) });
+  const res = await fetch("/api/options", { method: "POST", body: JSON.stringify({ type, name }), credentials: "include" });
   return res.json();
 }
 
 async function updateProductOption(id: number, name: string) {
-  const res = await fetch("/api/options", { method: "PUT", body: JSON.stringify({ id, name }) });
+  const res = await fetch("/api/options", { method: "PUT", body: JSON.stringify({ id, name }), credentials: "include" });
   return res.json();
 }
 
 async function deleteProductOption(id: number) {
-  const res = await fetch("/api/options", { method: "DELETE", body: JSON.stringify({ id }) });
+  const res = await fetch("/api/options", { method: "DELETE", body: JSON.stringify({ id }), credentials: "include" });
   return res.json();
 }
 
