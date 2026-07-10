@@ -47,7 +47,7 @@ export async function createSession(
 
   cookieStore.set("session", session, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Loại bỏ bắt buộc HTTPS
     expires: expiresAt,
     sameSite: "lax",
     path: "/",
@@ -92,7 +92,7 @@ export async function updateSession() {
 
   cookieStore.set("session", newSession, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Loại bỏ bắt buộc HTTPS
     expires: newExpiresAt,
     sameSite: "lax",
     path: "/",
